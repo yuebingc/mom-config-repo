@@ -1,0 +1,260 @@
+server:
+  port: ${rps.port:9085}
+  compression:
+    enabled: false
+    mime-types: application/json,text/html,text/xml,text/javascript,text/css,text/plain
+    min-response-size: 8192
+  connection-timeout: 60000
+  undertow:
+    direct-buffers: true
+    io-threads: 2
+    worker-threads: 16
+
+mom:
+  redis:
+    manager:
+      default-expiration-in-seconds: 600
+      load-remote-caches-on-startup: false
+      prefix-expiration-in-seconds: >
+        verifyCode:900, disableSendingVerifyCode:59, appVersion:0,
+        username:604800, removedToken:604800, refreshToken:21600,
+        verifyCodeCount:86400, cacheSingleLineOverview:30, passwordReset:604800,
+        appPush:604800, appTokenId:604800
+      use-prefix: true
+  redisson:
+    enabled: true
+    config: common-redission-local.yml
+  report:
+    file-generator-url: https://webhook.site/1fb91a56-995c-4f04-8e15-7346f9517b90
+  andon:
+    enabled: true
+    base-url: http://127.0.0.1:9080
+
+hisense:
+  aws:
+    enabled: false
+    server-url: http://10.19.44.210:8060
+    bucket-name: eamoss-1
+    access-key: VAUDMJMRA0VS3NTX4DGF
+    secret-key: KIFpQQHvCjDJB2UOzmFwD3RTeIzSYKJ341Cphg6M
+    intermediate-server-url: https://hichatx.hisense.com//openfile/download/media/%s
+
+logging:
+  config: classpath:log4j2-spring-rps-local.xml
+  file: ${user.home}/logs/mom-rps-local.log
+  level:
+    root: debug
+    org.xnio: info
+    io.undertow: info
+    io.netty: info
+    com.netflix.discovery: info
+    com.netflix.loadbalancer: info
+    com.netflix.hystrix: info
+    com.alibaba.druid.pool.PreparedStatementPool: 'off'
+    com.baomidou.mybatisplus.core.MybatisConfiguration: info
+    com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean: info
+    com.zaxxer.hikari: info
+    ma.glasnost.orika: info
+    org.apache.http: 'off'
+    org.apache.ibatis.logging.jdbc.BaseJdbcLogger: debug
+    org.apache.ibatis.session.AutoMappingUnknownColumnBehavior: warn
+    org.hibernate.validator: info
+    org.mybatis.spring: info
+    org.redisson: info
+    org.springframework: info
+    org.springframework.security: info
+    org.springframework.boot: info
+    org.springframework.web.filter.CommonsRequestLoggingFilter: debug
+    org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod: trace
+    org.quartz: warn
+    org.apache.activemq: info
+    springfox.documentation: info
+
+mybatis-plus:
+  mapper-locations: classpath*:mybatis/**/*Mapper.xml
+  configuration:
+    cache-enabled: false
+    use-generated-keys: true
+    default-executor-type: REUSE
+    auto-mapping-unknown-column-behavior: FAILING
+    map-underscore-to-camel-case: true
+    default-statement-timeout: 20
+    global-config:
+      banner: false
+      db-config:
+        id-type: INPUT
+        logic-delete-field: deleted
+    variables:
+      schema: MOM
+
+spring:
+  cloud:
+    inetutils:
+      preferredNetworks:
+        - 192.168
+        - 10.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.ManagementWebSecurityAutoConfiguration
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      jdbc-url: jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=CH71LT9TGBHM2)(PORT=1521))(CONNECT_DATA=(SID=MOM)))
+      driver-class-name: oracle.jdbc.OracleDriver
+      minimum-idle: 1
+      maximum-pool-size: 8
+      password: mom
+      username: mom
+      login-timeout: 10
+      validation-timeout: 3000
+      data-source-properties:
+        - oracle.jdbc.ReadTimeout: 60000
+  redis:
+    database: 0
+    host: localhost
+    pool:
+      max-active: 8
+      max-idle: 4
+      max-wait: 3000
+      min-idle: 1
+    port: 6379
+    timeout: 3000
+  output:
+    ansi:
+      enabled: NEVER
+  main:
+    banner-mode: 'OFF'
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+      indent-output: false
+    deserialization:
+      accept-float-as-int: false
+      accept-single-value-as-array: true
+      unwrap-single-value-arrays: true
+    default-property-inclusion: NON_NULL
+    mapper:
+      auto-detect-fields: false
+      auto-detect-creators: false
+      auto-detect-setters: false
+      auto-detect-getters: false
+      auto-detect-is-getters: false
+      require-setters-for-getters: false
+    time-zone: Asia/Shanghai
+  http:
+    encoding:
+      charset: UTF-8
+      force: true
+      force-request: true
+      force-response: true
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 500MB
+  activemq:
+    broker-url: tcp://${activemq.host:localhost}:${activemq.port:61616}
+    pool:
+      enabled: true
+      max-connections: 5
+      maximum-active-session-per-connection: 200
+
+ribbon:
+  eager-load:
+    enabled: true
+    clients: auth-service, vsms-service
+  ConnectTimeout: 2000
+  ReadTimeout: 8000
+  httpclient:
+    enabled: false
+  okhttp:
+    enabled: true
+
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 2000
+        read-timeout: 8000
+  hystrix:
+    enabled: false
+  httpclient:
+    enabled: false
+    max-connections: 200
+    max-connections-per-route: 50
+  okhttp:
+    enabled: true
+
+hystrix:
+  command:
+    default:
+      execution:
+        timeout:
+          enabled: true
+        isolation:
+          semaphore:
+            maxConcurrentRequests: 200
+          strategy: SEMAPHORE
+          thread:
+            timeoutInMilliseconds: 15000
+      fallback:
+        isolation:
+          semaphore:
+            maxConcurrentRequests: 200
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    eureka-server-connect-timeout-seconds: 2
+    eureka-server-read-timeout-seconds: 5
+    initial-instance-info-replication-interval-seconds: 20
+    instance-info-replication-interval-seconds: 3
+    registry-fetch-interval-seconds: 3
+    region: cn-shanghai-1
+    service-url:
+      defaultZone: http://${eureka.host:127.0.0.1}:${eureka.port:8762}/eureka/
+
+endpoints:
+  shutdown:
+    enabled: true
+
+management:
+  port: 1${server.port}
+  context-path: /actuator
+  security:
+    enabled: false
+
+license:
+  cli:
+    enabled: true
+    subject: 'mom'
+    keystore-password: A1z345clientPA
+    public-alias: publiccert
+    public-key-path: /publicCerts.store
+
+extern-sys:
+  zt:
+    app-key: B13F20AD8B9D2508
+    url: http://114.115.157.38:8003/
+    enabled: true
+
+tencent-boss:
+   redirect-url: https://stgapi.mom.honeywell.com.cn/rps
+   sso-login-url: https://stgapi.mom.honeywell.com.cn/rps
+   front-login-url: https://stg.mom.honeywell.com.cn/#/login-token?
+   cloud-url: http://211.159.206.244
+   etpm:
+      login-app-id: b0fdbb1cb96cadf873df
+      login-app-secret: d4127336c9421d81f808732ad416f28b84253dfed7460b02823b9c11b387785f
+   hse:
+      login-app-id: 565d0730abad0fef81a8
+      login-app-secret: 0ea6ea51d1e157c5862b0513381fd54e11c60d914f6d20fc53d0829de8138634
+   rps:
+      login-app-id: c145834c5582a2861305
+      login-app-secret: 8dabd0146c00bf5195fbc78faf7ce40124d39d2f15cf177a7d56008f23c2f8ef
+
+
